@@ -80,27 +80,27 @@ body::after {
 .orb {
   position: fixed;
   border-radius: 50%;
-  filter: blur(100px);
+  filter: blur(80px);
   pointer-events: none;
   z-index: 0;
 }
 
 .orb-1 {
-  width: 700px;
-  height: 700px;
-  background: radial-gradient(circle, rgba(80, 128, 255, 0.20) 0%, rgba(80, 128, 255, 0.05) 60%, transparent 100%);
-  top: -300px;
-  left: -200px;
-  animation: float-orb-1 40s ease-in-out infinite;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(80, 128, 255, 0.50) 0%, rgba(80, 128, 255, 0.12) 50%, transparent 100%);
+  top: -120px;
+  left: -100px;
+  animation: float-orb-1 45s ease-in-out infinite;
 }
 
 .orb-2 {
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(0, 229, 118, 0.15) 0%, rgba(0, 229, 118, 0.04) 60%, transparent 100%);
-  bottom: -200px;
-  right: -150px;
-  animation: float-orb-2 35s ease-in-out infinite;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(0, 229, 118, 0.40) 0%, rgba(0, 229, 118, 0.10) 50%, transparent 100%);
+  bottom: -100px;
+  right: -80px;
+  animation: float-orb-2 40s ease-in-out infinite;
 }
 
 /* ─── Scrollbar ────────────────────────────────────────────── */
