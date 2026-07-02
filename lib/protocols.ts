@@ -18,14 +18,14 @@ export type MarketData = {
   decimals: number;
   chain: ChainKey;
   protocol: string;
-  supplyAPY: number;       // percentage
-  borrowAPY: number;        // percentage
-  totalSupply: string;     // human-readable
-  totalBorrow: string;     // human-readable
-  TVL: number;              // USD
-  LTV: number;              // Loan-to-Value (0-1)
+  supplyAPY: number;
+  borrowAPY: number;
+  totalSupply: string;
+  totalBorrow: string;
+  TVL: number;
+  LTV: number;
   liquidationThreshold: number;
-available: boolean;
+  available: boolean;
   price: number;
 };
 
@@ -33,28 +33,41 @@ export type PortfolioPosition = {
   symbol: string;
   chain: ChainKey;
   protocol: string;
-  supplied: number;        // USD
-  borrowed: number;        // USD
+  supplied: number;
+  borrowed: number;
   healthFactor: number;
   netAPY: number;
 };
 
 // ─── Aave V3 ─────────────────────────────────────────────────────────────────
 
-interface AaveReserveData {
-  liquidityRate: bigint;
-  variableBorrowRate: bigint;
-  aTokenAddress: string;
-}
+/*
+  Aave V3 ReserveData struct (15 fields):
+  [0] configuration  (uint256)
+  [1] liquidityIndex (uint128, RAY)
+  [2] variableBorrowIndex (uint128, RAY)
+  [3] currentLiquidityRate (uint128, RAY)
+  [4] currentVariableBorrowRate (uint128, RAY)
+  [5] currentStableBorrowRate (uint128, RAY)
+  [6] lastUpdateTimestamp (uint40)
+  [7] id (uint16)
+  [8] aTokenAddress (address)
+  [9] stableDebtTokenAddress (address)
+  [10] variableDebtTokenAddress (address)
+  [11] interestRateStrategyAddress (address)
+  [12] accruedToTreasury (uint128)
+  [13] unbacked (uint128)
+  [14] isolationModeTotalDebt (uint128)
+*/
 
-interface AaveUserData {
-  totalCollateralBase: bigint;
-  totalDebtBase: bigint;
-  availableBorrowsBase: bigint;
-  currentLiquidationThreshold: bigint;
-  ltv: bigint;
-  healthFactor: bigint;
-}
+// Minimal Aave V3 ABI for accessing reserve data
+const AAVE_GET_RESERVE_ABI = [
+  'function getReserveData(address) view returns (tuple(uint256,uint128,uint128,uint128,uint128,uint128,uint40,uint16,address,address,address,address,uint128,uint128,uint128))',
+];
+
+const AAVE_USER_ACCOUNT_ABI = [
+  'function getUserAccountData(address) view returns (tuple(uint256,uint256,uint256,uint256,uint256,uint256,uint256))',
+];
 
 export async function fetchAaveV3Market(chain: ChainKey): Promise<MarketData[]> {
   const chainId = { ethereum: 1, arbitrum: 42161, optimism: 10, base: 8453, polygon: 137 }[chain];
@@ -65,39 +78,47 @@ export async function fetchAaveV3Market(chain: ChainKey): Promise<MarketData[]> 
     const assets = DEFAULT_ASSETS[chain];
     const results = await Promise.allSettled(
       assets.map(async (asset) => {
-        const data = await readContract<AaveReserveData>(chain, poolProxy, AAVE_V3.poolABI, 'getReserveData', [asset.address]);
-        const supplyAPY = Number(data.liquidityRate) / 1e25; // ray → percentage
-        const borrowAPY = Number(data.variableBorrowRate) / 1e25;
-
-        // Get total supply from aToken
-        let totalSupply = 0n;
         try {
-          const aToken = new ethers.Contract(data.aTokenAddress, ['function totalSupply() view returns (uint256)'], await getProvider(chain));
-          totalSupply = await (aToken.totalSupply() as Promise<bigint>);
-        } catch {
-          totalSupply = 0n;
+          const res = await readContract<ethers.Result>(chain, poolProxy, AAVE_GET_RESERVE_ABI, 'getReserveData', [asset.address]);
+          const currentLiquidityRate = res[3] as bigint;
+          const currentVariableBorrowRate = res[4] as bigint;
+          const aTokenAddr = res[8] as string;
+
+          const supplyAPY = Number(currentLiquidityRate) / 1e25; // RAY → percentage
+          const borrowAPY = Number(currentVariableBorrowRate) / 1e25;
+
+          let totalSupply = 0n;
+          try {
+            const aToken = new ethers.Contract(aTokenAddr, ['function totalSupply() view returns (uint256)'], await getProvider(chain));
+            totalSupply = await (aToken.totalSupply() as Promise<bigint>);
+          } catch {
+            totalSupply = 0n;
+          }
+
+          const formatted = parseFloat(ethers.formatUnits(totalSupply, asset.decimals));
+          const price = 1;
+          const tvl = formatted * price;
+
+          return {
+            symbol: asset.symbol,
+            address: asset.address,
+            decimals: asset.decimals,
+            chain,
+            protocol: 'Aave V3',
+            supplyAPY,
+            borrowAPY,
+            totalSupply: formatCompact(formatted),
+            totalBorrow: '\u2014',
+            TVL: tvl,
+            LTV: 0.8,
+            liquidationThreshold: 0.82,
+            available: supplyAPY > 0,
+            price,
+          };
+        } catch (e) {
+          console.error(`Aave fetch failed for ${asset.symbol} on ${chain}:`, e);
+          throw e;
         }
-
-        const formatted = parseFloat(ethers.formatUnits(totalSupply, asset.decimals));
-        const price = 1; // simplified
-        const tvl = formatted * price;
-
-        return {
-          symbol: asset.symbol,
-          address: asset.address,
-          decimals: asset.decimals,
-          chain,
-          protocol: 'Aave V3',
-          supplyAPY,
-          borrowAPY,
-          totalSupply: formatCompact(formatted),
-          totalBorrow: '—',
-          TVL: tvl,
-          LTV: 0.8, // Aave v3 default LTV varies by asset
-          liquidationThreshold: 0.82,
-          available: supplyAPY > 0,
-          price,
-        };
       })
     );
 
@@ -121,23 +142,32 @@ export async function fetchCompoundV3Market(chain: ChainKey): Promise<MarketData
 
   for (const [symbol, cometAddr] of Object.entries(comets)) {
     try {
-      const supplyRate = await readContract<bigint>(chain, cometAddr, COMPOUND_V3.cometABI, 'supplyRatePerSecond', []);
-      const borrowRate = await readContract<bigint>(chain, cometAddr, COMPOUND_V3.cometABI, 'borrowRatePerSecond', []);
-      const totalSupply = await readContract<bigint>(chain, cometAddr, COMPOUND_V3.cometABI, 'totalSupply', []);
-      const totalBorrow = await readContract<bigint>(chain, cometAddr, COMPOUND_V3.cometABI, 'totalBorrow', []);
-      const cash = await readContract<bigint>(chain, cometAddr, COMPOUND_V3.cometABI, 'getCash', []);
+      const provider = await getProvider(chain);
+      const comet = new ethers.Contract(cometAddr, COMPOUND_V3.cometABI, provider);
 
+      const supplyRate = await comet.supplyRatePerSecond() as bigint;
+      const borrowRate = await comet.borrowRatePerSecond() as bigint;
+      const totalSupply = await comet.totalSupply() as bigint;
+      const totalBorrow = await comet.totalBorrow() as bigint;
+      const cash = await comet.getCash() as bigint;
+
+      // Convert per-second rate to APY
       const SECONDS_PER_YEAR = 31536000;
-      const supplyAPY = (Number(supplyRate) * SECONDS_PER_YEAR / 1e18) * 100;
-      const borrowAPY = (Number(borrowRate) * SECONDS_PER_YEAR / 1e18) * 100;
-      const total = Number(totalSupply) / 1e6; // USDC or WETH decimals
-      const borrowed = Number(totalBorrow) / 1e6;
-      const tvl = (Number(cash) + borrowed) / 1e6;
+      const supplyAPY = (Math.pow(1 + Number(supplyRate) / 1e18, SECONDS_PER_YEAR) - 1) * 100;
+      const borrowAPY = (Math.pow(1 + Number(borrowRate) / 1e18, SECONDS_PER_YEAR) - 1) * 100;
+
+      const isUSDC = symbol.includes('USDC');
+      const decimals = isUSDC ? 6 : 18;
+      const scale = Math.pow(10, decimals);
+
+      const total = Number(totalSupply) / scale;
+      const borrowed = Number(totalBorrow) / scale;
+      const tvl = (Number(cash) + Number(totalBorrow)) / scale;
 
       results.push({
         symbol,
         address: cometAddr,
-        decimals: symbol === 'USDC' ? 6 : 18,
+        decimals,
         chain,
         protocol: 'Compound V3',
         supplyAPY,
@@ -158,7 +188,7 @@ export async function fetchCompoundV3Market(chain: ChainKey): Promise<MarketData
   return results;
 }
 
-// ─── Radiant V2 ─────────────────────────────────────────────────────────────
+// ─── Radiant V2 ──────────────────────────────────────────────────────────────
 
 export async function fetchRadiantMarket(chain: ChainKey): Promise<MarketData[]> {
   if (chain !== 'arbitrum') return [];
@@ -167,40 +197,46 @@ export async function fetchRadiantMarket(chain: ChainKey): Promise<MarketData[]>
 
   try {
     const results: MarketData[] = [];
-    // Try fetching first 8 assets
     for (let i = 0; i < 8; i++) {
       try {
-        const info = await readContract<[bigint, bigint, bigint, bigint, bigint, bigint, bigint, bigint, bigint, bigint, bigint, bigint, bigint]>(
+        const info = await readContract<ethers.Result>(
           chain, poolAddr, RADIANT.poolABI, 'getAssetInfo', [i]
         );
-        const [isActive, , underlyingAsset, totalSupply, totalBorrow, supplyRate, borrowRate] = info;
+        const isActive = Number(info[0]);
+        if (isActive === 0) continue;
 
-        if (Number(isActive) === 0) continue;
+        const underlyingAsset = info[2].toString();
+        const totalSupply = Number(info[3]);
+        const totalBorrow = Number(info[4]);
+        const supplyRate = Number(info[5]);
+        const borrowRate = Number(info[6]);
 
-        // Decode: supplyRate and borrowRate are in bips × 1e9 (ray format)
-        const supplyAPY = Number(supplyRate) / 1e9 * 100 * 365;  // very rough estimate
-        const borrowAPY = Number(borrowRate) / 1e9 * 100 * 365;
-        const tvl = Number(totalSupply) / 1e6; // approx
+        // Rate conversion: Radiant uses RAY for rates
+        const supplyAPY = (supplyRate / 1e27) * 100;
+        const borrowAPY = (borrowRate / 1e27) * 100;
 
-        const symbol = getSymbolFromAddress(chain, underlyingAsset.toString());
+        const symbol = getSymbolFromAddress(chain, underlyingAsset);
+        const decimals = 18;
+        const tvl = totalSupply / 1e18;
+
         results.push({
           symbol,
-          address: underlyingAsset.toString(),
-          decimals: 18,
+          address: underlyingAsset,
+          decimals,
           chain,
           protocol: 'Radiant V2',
           supplyAPY,
           borrowAPY,
-          totalSupply: formatCompact(Number(totalSupply) / 1e18),
-          totalBorrow: formatCompact(Number(totalBorrow) / 1e18),
+          totalSupply: formatCompact(totalSupply / 1e18),
+          totalBorrow: formatCompact(totalBorrow / 1e18),
           TVL: tvl,
-          LTV: Number(info[8]) / 1e4,
-          liquidationThreshold: Number(info[9]) / 1e4,
-          available: Number(isActive) === 1,
+          LTV: 1,
+          liquidationThreshold: 1,
+          available: isActive === 1,
           price: 1,
         });
       } catch {
-        break; // no more assets
+        break;
       }
     }
     return results;
@@ -224,23 +260,29 @@ export async function fetchPortfolio(wallet: string, chains: ChainKey[]): Promis
     const poolProxy = AAVE_V3.poolProxies[chainId];
     if (poolProxy) {
       try {
-        const userData = await readContract<AaveUserData>(chain, poolProxy, AAVE_V3.poolABI, 'getUserAccountData', [wallet]);
-        if (userData && userData.healthFactor > 0n) {
-          const healthFactor = Number(userData.healthFactor) / 1e18;
-          const supplied = Number(userData.totalCollateralBase) / 1e8;
-          const borrowed = Number(userData.totalDebtBase) / 1e8;
+        const res = await readContract<ethers.Result>(chain, poolProxy, AAVE_USER_ACCOUNT_ABI, 'getUserAccountData', [wallet]);
+        // [totalCollateralBase, totalDebtBase, availableBorrowsBase, currentLiquidationThreshold, ltv, healthFactor, eModeCategoryId]
+        const totalCollateral = Number(res[0]) / 1e8;  // USD with 8 decimals
+        const totalDebt = Number(res[1]) / 1e8;
+        const healthFactor = Number(res[5]) / 1e18;
 
+        if (totalCollateral > 0 || totalDebt > 0) {
           positions.push({
             symbol: 'All',
             chain,
             protocol: 'Aave V3',
-            supplied,
-            borrowed,
+            supplied: totalCollateral,
+            borrowed: totalDebt,
             healthFactor,
-            netAPY: 0, // would need more complex calc
+            netAPY: 0,
           });
+          console.log(`Portfolio found: ${wallet} on ${chain}, collateral=${totalCollateral}, debt=${totalDebt}, HF=${healthFactor}`);
+        } else {
+          console.log(`No portfolio on ${chain} for ${wallet}`);
         }
-      } catch { /* wallet not in Aave */ }
+      } catch (e) {
+        console.log(`Portfolio check failed for ${wallet} on ${chain}:`, e);
+      }
     }
   }
 

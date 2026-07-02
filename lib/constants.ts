@@ -83,7 +83,7 @@ export const DEFAULT_ASSETS: Record<ChainKey, AssetInfo[]> = {
   ],
   optimism: [
     { symbol: 'USDC', address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85', decimals: 6 },
-    { symbol: 'WETH', address: '0x4200000000000000000000000000000000000042', decimals: 18 },
+    { symbol: 'WETH', address: '0x4200000000000000000000000000000000000006', decimals: 18 },
     { symbol: 'WBTC', address: '0x68f180fcCe6836688e9904A47931228732eC9B5d', decimals: 8 },
   ],
   base: [
@@ -112,7 +112,7 @@ export const AAVE_V3 = {
     137: '0x794a61358D6845594F94dc1DB02A252b5b4814aD',
   } as Record<number, string>,
   poolABI: [
-    'function getReserveData(address asset) view returns (tuple(uint256 configurationData, uint128 liquidityRate, uint128 variableBorrowRate, uint128 stableBorrowRate, uint40 lastUpdateTimestamp, uint16 id, address aTokenAddress, address stableDebtTokenAddress, address variableDebtTokenAddress, address interestRateStrategyAddress, uint128 accruedToTreasury, uint128 unbackedMintFee, uint128 isolatedPrincipal))',
+    'function getReserveData(address asset) view returns (tuple(uint256 configuration, uint128 liquidityIndex, uint128 variableBorrowIndex, uint128 currentLiquidityRate, uint128 currentVariableBorrowRate, uint128 currentStableBorrowRate, uint40 lastUpdateTimestamp, uint16 id, address aTokenAddress, address stableDebtTokenAddress, address variableDebtTokenAddress, address interestRateStrategyAddress, uint128 accruedToTreasury, uint128 unbacked, uint128 isolationModeTotalDebt))',
     'function getUserAccountData(address user) view returns (tuple(uint256 totalCollateralBase, uint256 totalDebtBase, uint256 availableBorrowsBase, uint256 currentLiquidationThreshold, uint256 ltv, uint256 healthFactor, uint256 eModeCategoryId))',
     'function getReservesList() view returns (address[])',
   ],
@@ -130,10 +130,10 @@ export const COMPOUND_V3 = {
   comets: {
     1: {
       USDC: '0xc3d688B66703497DAA19211EEdff47f25384cdc3',
-      WETH: '0xA17581A9E3356d9A8584487892b0dcb86022D243',
+      WETH: '0xa17581A9E3356d9A8584487892B0dCB86022d243',
     },
     42161: {
-      USDC: '0x9c4ec900c49e84686F2b8347695daB7bE44De37D',
+      USDC: '0x9c4ec900c49E84686f2b8347695DAB7BE44de37D',
     },
   } as Record<number, Record<string, string>>,
   cometABI: [
