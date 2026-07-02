@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-base: #030B06;
+  --surface: #0A160D;
+  --surface-2: #101F14;
+  --surface-3: #162518;
+  --border: #1E3A22;
+  --border-bright: #2A4F2F;
+  --text: #E8F5EC;
+  --text-muted: #7A9F84;
+  --text-dim: #4A6B53;
+  --accent: #00E5A0;
+  --accent-green: #00E5A0;
+  --accent-red: #FF4D6A;
+  --accent-amber: #FFB347;
+  --accent-blue: #4D9FFF;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--bg-base);
+  color: var(--text);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 229, 160, 0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 80% 60%, rgba(0, 229, 160, 0.03) 0%, transparent 60%);
+  background-attachment: fixed;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* Selection */
+::selection { background: rgba(0, 229, 160, 0.2); color: var(--accent); }
+
+/* Focus */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+/* Mono numbers */
+.font-mono-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Glass panel */
+.glass {
+  background: rgba(10, 22, 13, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}
+
+/* Glow effects */
+.glow-green { box-shadow: 0 0 20px rgba(0, 229, 160, 0.15), inset 0 0 20px rgba(0, 229, 160, 0.03); }
+.glow-red { box-shadow: 0 0 20px rgba(255, 77, 106, 0.15); }
+.glow-amber { box-shadow: 0 0 20px rgba(255, 179, 71, 0.15); }
+
+/* Trend animations */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.animate-pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+/* Stagger entrance */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up { animation: fade-up 0.4s ease-out forwards; }
+.delay-1 { animation-delay: 0.05s; opacity: 0; }
+.delay-2 { animation-delay: 0.10s; opacity: 0; }
+.delay-3 { animation-delay: 0.15s; opacity: 0; }
+.delay-4 { animation-delay: 0.20s; opacity: 0; }
+.delay-5 { animation-delay: 0.25s; opacity: 0; }
+
+/* Recharts overrides */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: var(--border) !important;
+}
+.recharts-tooltip-wrapper { outline: none !important; }
+
+/* Spin animation for refresh button */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 1s linear infinite; }
+
+/* Global resets */
+body { margin: 0; }
+* { box-sizing: border-box; }
+input[type=number]::-webkit-inner-spin-button { opacity: 0.5; }
+input:focus { outline: none; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up, .animate-pulse-dot { animation: none; }
+  * { transition-duration: 0.01ms !important; }
+}
