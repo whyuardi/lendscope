@@ -66,7 +66,7 @@ const AAVE_GET_RESERVE_ABI = [
 ];
 
 const AAVE_USER_ACCOUNT_ABI = [
-  'function getUserAccountData(address) view returns (tuple(uint256,uint256,uint256,uint256,uint256,uint256,uint256))',
+  'function getUserAccountData(address user) view returns (uint256 totalCollateralBase, uint256 totalDebtBase, uint256 availableBorrowsBase, uint256 currentLiquidationThreshold, uint256 ltv, uint256 healthFactor)',
 ];
 
 export async function fetchAaveV3Market(chain: ChainKey): Promise<MarketData[]> {
@@ -303,7 +303,7 @@ const ADDRESS_TO_SYMBOL: Record<string, string> = {
   '0xdAC17F958D2ee523a2206206994597C13D831ec7': 'USDT',
   '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2': 'WETH',
   '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599': 'WBTC',
-  '0x6B175474E89094C44Da98b954EescdeCB5BE3380': 'DAI',
+  '0x6b175474E89094c44da98b954edeAcdB5be3380': 'DAI',
   '0xaf88d065e77c8cC2239327C5EDb3A432268e5831': 'USDC',
   '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1': 'WETH',
   '0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f': 'WBTC',
