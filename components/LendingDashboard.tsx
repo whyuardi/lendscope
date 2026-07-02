@@ -6,18 +6,21 @@ import { ChainKey } from '@/lib/constants';
 import { MarketData, fetchAllMarkets, fetchPortfolio } from '@/lib/protocols';
 import { CHAINS } from '@/lib/constants';
 
-const ACCENT = '#00E5A0';
-const RED = '#FF4D6A';
-const AMBER = '#FFB347';
-const SURFACE = '#0A160D';
-const SURFACE2 = '#101F14';
-const SURFACE3 = '#162518';
-const BORDER = '#1E3A22';
-const TEXT = '#E8F5EC';
-const MUTED = '#7A9F84';
-const DIM = '#4A6B53';
+// ─── EverSwap Design System Tokens ──────────────────────
+const ACCENT = '#5080FF';
+const ACCENT_EMERALD = '#00E576';
+const RED = '#FF3355';
+const AMBER = '#FFAA33';
+const SURFACE = '#080808';
+const SURFACE2 = '#0D0D0D';
+const SURFACE3 = '#121212';
+const BORDER = '#1A1A1A';
+const BORDER_BRIGHT = '#2A2A2A';
+const TEXT = '#E8EDE8';
+const MUTED = '#686868';
+const DIM = '#484848';
 
-const P_COLORS = ['#9D6EEF', '#00D395', '#F54B7E', '#5B7DFF', '#FFB347', '#4D9FFF', '#FF8C42'];
+const P_COLORS = ['#5080FF', '#00E576', '#FF3355', '#5B7DFF', '#FFAA33', '#4D9FFF', '#FF8C42'];
 const PROTOCOL_NAMES = ['Aave V3', 'Compound V3', 'Radiant V2', 'Morpho'];
 
 function f$(n: number) {
@@ -40,7 +43,7 @@ function fHF(n: number) {
 const CHART_TOOLTIP = ({ active, payload, label }: { active?: boolean; payload?: { name: string; value: number; color: string }[]; label?: string }) => {
   if (!active || !payload || payload.length === 0) return null;
   return (
-    <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
+    <div style={{ background: SURFACE3, border: '1px solid ' + BORDER_BRIGHT, borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
       <div style={{ color: MUTED, marginBottom: 4 }}>{label}</div>
       {payload.map((p) => (
         <div key={p.name} style={{ color: p.color, fontFamily: 'JetBrains Mono, monospace' }}>
@@ -54,11 +57,11 @@ const CHART_TOOLTIP = ({ active, payload, label }: { active?: boolean; payload?:
 function Badge({ children, color }: { children: React.ReactNode; color?: string }) {
   const c = color || 'green';
   const colors: Record<string, { bg: string; text: string }> = {
-    green: { bg: 'rgba(0,229,160,0.12)', text: ACCENT },
-    red: { bg: 'rgba(255,77,106,0.12)', text: RED },
-    amber: { bg: 'rgba(255,179,71,0.12)', text: AMBER },
-    blue: { bg: 'rgba(77,159,255,0.12)', text: '#4D9FFF' },
-    purple: { bg: 'rgba(157,110,239,0.12)', text: '#9D6EEF' },
+    green: { bg: 'rgba(0,229,118,0.12)', text: ACCENT_EMERALD },
+    red: { bg: 'rgba(255,51,85,0.12)', text: RED },
+    amber: { bg: 'rgba(255,170,51,0.12)', text: AMBER },
+    blue: { bg: 'rgba(80,128,255,0.12)', text: ACCENT },
+    purple: { bg: 'rgba(128,90,255,0.12)', text: '#805AFF' },
   };
   const cc = colors[c] || colors.green;
   return (
@@ -72,8 +75,8 @@ function MetricCard({ label, value, sub, accent }: { label: string; value: strin
   return (
     <div style={{
       background: SURFACE2, border: '1px solid ' + (accent ? ACCENT : BORDER),
-      borderRadius: 12, padding: '16px 20px',
-      boxShadow: accent ? '0 0 24px rgba(0,229,160,0.1), inset 0 0 20px rgba(0,229,160,0.03)' : 'none',
+      borderRadius: 10, padding: '16px 20px',
+      boxShadow: accent ? '0 0 24px rgba(80,128,255,0.06)' : 'none',
     }}>
       <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>{label}</div>
       <div style={{ color: accent ? ACCENT : TEXT, fontSize: 28, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace', letterSpacing: '-0.02em' }}>{value}</div>
@@ -97,11 +100,11 @@ function ChainSelector({ selected, onChange }: { selected: ChainKey[]; onChange:
         const active = selected.includes(c);
         return (
           <button key={c} onClick={() => toggle(c)} style={{
-            padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600,
+            padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600,
             border: '1px solid ' + (active ? ACCENT : BORDER),
-            background: active ? 'rgba(0,229,160,0.15)' : 'transparent',
+            background: active ? 'rgba(80,128,255,0.12)' : 'transparent',
             color: active ? ACCENT : MUTED, cursor: 'pointer', transition: 'all 0.15s ease',
-            fontFamily: 'Outfit, sans-serif',
+            fontFamily: 'Inter, sans-serif',
           }}>
             {CHAINS[c].name}
           </button>
@@ -111,13 +114,13 @@ function ChainSelector({ selected, onChange }: { selected: ChainKey[]; onChange:
   );
 }
 
-function YieldTable({ data, sortKey }: { data: MarketData[]; sortKey: string }) {
+function YieldTable({ data }: { data: MarketData[] }) {
   return (
     <div style={{ overflowX: 'auto', marginTop: 12 }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
         <thead>
           <tr style={{ borderBottom: '1px solid ' + BORDER }}>
-            {['#', 'Asset', 'Protocol', 'Chain', 'Supply APY', 'Borrow APY', 'TVL', 'LTV', 'Status'].map((h) => (
+            {['#', 'Asset', 'Protocol', 'Chain', 'Supply APY', 'Borrow APY', 'TVL', 'LTV', ''].map((h) => (
               <th key={h} style={{ padding: '8px 12px', color: DIM, fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
             ))}
           </tr>
@@ -133,15 +136,15 @@ function YieldTable({ data, sortKey }: { data: MarketData[]; sortKey: string }) 
                 <td style={{ padding: '10px 12px', fontWeight: 600 }}>{d.symbol}</td>
                 <td style={{ padding: '10px 12px' }}><Badge color={d.protocol === 'Aave V3' ? 'purple' : d.protocol === 'Compound V3' ? 'green' : 'blue'}>{d.protocol}</Badge></td>
                 <td style={{ padding: '10px 12px', color: MUTED, fontSize: 12 }}>{CHAINS[d.chain].name}</td>
-                <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', color: ACCENT, fontWeight: 600 }}>{d.supplyAPY > 0 ? fAPY(d.supplyAPY) : '\u2014'}</td>
+                <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', color: ACCENT_EMERALD, fontWeight: 600 }}>{d.supplyAPY > 0 ? fAPY(d.supplyAPY) : '\u2014'}</td>
                 <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', color: d.borrowAPY > 8 ? RED : AMBER, fontWeight: 600 }}>{d.borrowAPY > 0 ? fAPY(d.borrowAPY) : '\u2014'}</td>
                 <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', color: MUTED, fontSize: 12 }}>{d.TVL > 0 ? f$(d.TVL) : '\u2014'}</td>
                 <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', color: MUTED, fontSize: 12 }}>{d.LTV > 0 ? (d.LTV * 100).toFixed(0) + '%' : '\u2014'}</td>
                 <td style={{ padding: '10px 12px' }}>
                   <span style={{
-                    display: 'inline-block', width: 8, height: 8, borderRadius: '50%',
-                    background: d.available && d.supplyAPY > 0 ? ACCENT : DIM,
-                    boxShadow: d.available && d.supplyAPY > 0 ? '0 0 6px ' + ACCENT : 'none',
+                    display: 'inline-block', width: 7, height: 7, borderRadius: '50%',
+                    background: d.available && d.supplyAPY > 0 ? ACCENT_EMERALD : DIM,
+                    boxShadow: d.available && d.supplyAPY > 0 ? '0 0 6px ' + ACCENT_EMERALD : 'none',
                   }} />
                 </td>
               </tr>
@@ -185,16 +188,16 @@ function GasOptimizer() {
           const isCheapest = g.chain === cheapest.chain;
           return (
             <div key={g.chain} style={{
-              background: isCheapest ? 'rgba(0,229,160,0.08)' : SURFACE2,
+              background: isCheapest ? 'rgba(80,128,255,0.06)' : SURFACE2,
               border: '1px solid ' + (isCheapest ? ACCENT : BORDER),
               borderRadius: 10, padding: '14px 16px',
-              boxShadow: isCheapest ? '0 0 16px rgba(0,229,160,0.1)' : 'none',
+              boxShadow: isCheapest ? '0 0 16px rgba(80,128,255,0.06)' : 'none',
             }}>
               <div style={{ color: MUTED, fontSize: 11, marginBottom: 4 }}>{g.chain}</div>
               <div style={{ color: isCheapest ? ACCENT : TEXT, fontSize: 22, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>
                 {'$' + g.costUSD.toFixed(2)}
               </div>
-              {isCheapest && <Badge color="green">Cheapest</Badge>}
+              {isCheapest && <Badge color="blue">Cheapest</Badge>}
               <div style={{ color: DIM, fontSize: 10, marginTop: 4, fontFamily: 'JetBrains Mono, monospace' }}>
                 {g.gasPriceGwei} gwei
               </div>
@@ -202,7 +205,7 @@ function GasOptimizer() {
           );
         })}
       </div>
-      <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 12, padding: '16px 20px' }}>
+      <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 10, padding: '16px 20px' }}>
         <div style={{ color: MUTED, fontSize: 13, marginBottom: 8 }}>💡 Gas Savings</div>
         <div style={{ color: TEXT, fontSize: 14 }}>
           Using <strong style={{ color: ACCENT }}>{cheapest.chain}</strong> saves{' '}
@@ -229,13 +232,13 @@ function WhatIfCalculator({ data }: { data: MarketData[] }) {
   return (
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-        <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 12, padding: 20 }}>
+        <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 10, padding: 20 }}>
           <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>Supply</div>
           <div style={{ marginBottom: 12 }}>
             <label style={{ display: 'block', color: DIM, fontSize: 11, marginBottom: 4 }}>Asset</label>
             <select value={supplyAsset} onChange={(e) => setSupplyAsset(e.target.value)} style={{
-              width: '100%', background: SURFACE, border: '1px solid ' + BORDER, borderRadius: 8,
-              color: TEXT, padding: '8px 12px', fontSize: 14, outline: 'none', fontFamily: 'Outfit, sans-serif',
+              width: '100%', background: SURFACE3, border: '1px solid ' + BORDER_BRIGHT, borderRadius: 8,
+              color: TEXT, padding: '8px 12px', fontSize: 14, outline: 'none', fontFamily: 'Inter, sans-serif',
             }}>
               {data.map((d) => <option key={d.chain + '-' + d.symbol} value={d.symbol}>{d.symbol}</option>)}
             </select>
@@ -243,23 +246,23 @@ function WhatIfCalculator({ data }: { data: MarketData[] }) {
           <div>
             <label style={{ display: 'block', color: DIM, fontSize: 11, marginBottom: 4 }}>Amount (USD)</label>
             <input type="number" value={supplyAmount} onChange={(e) => setSupplyAmount(e.target.value)} style={{
-              width: '100%', background: SURFACE, border: '1px solid ' + BORDER, borderRadius: 8,
+              width: '100%', background: SURFACE3, border: '1px solid ' + BORDER_BRIGHT, borderRadius: 8,
               color: TEXT, padding: '8px 12px', fontSize: 14, outline: 'none', fontFamily: 'JetBrains Mono, monospace',
             }} />
           </div>
           {selected && (
-            <div style={{ marginTop: 12, color: ACCENT, fontSize: 13, fontFamily: 'JetBrains Mono, monospace' }}>
+            <div style={{ marginTop: 12, color: ACCENT_EMERALD, fontSize: 13, fontFamily: 'JetBrains Mono, monospace' }}>
               Earn: {fAPY(supplyAPY)} APY → ${yearlyEarn.toFixed(2)}/yr
             </div>
           )}
         </div>
-        <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 12, padding: 20 }}>
+        <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 10, padding: 20 }}>
           <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>Borrow</div>
           <div style={{ marginBottom: 12 }}>
             <label style={{ display: 'block', color: DIM, fontSize: 11, marginBottom: 4 }}>Asset</label>
             <select value={borrowAsset} onChange={(e) => setBorrowAsset(e.target.value)} style={{
-              width: '100%', background: SURFACE, border: '1px solid ' + BORDER, borderRadius: 8,
-              color: TEXT, padding: '8px 12px', fontSize: 14, outline: 'none', fontFamily: 'Outfit, sans-serif',
+              width: '100%', background: SURFACE3, border: '1px solid ' + BORDER_BRIGHT, borderRadius: 8,
+              color: TEXT, padding: '8px 12px', fontSize: 14, outline: 'none', fontFamily: 'Inter, sans-serif',
             }}>
               {data.map((d) => <option key={d.chain + '-' + d.symbol} value={d.symbol}>{d.symbol}</option>)}
             </select>
@@ -267,7 +270,7 @@ function WhatIfCalculator({ data }: { data: MarketData[] }) {
           <div>
             <label style={{ display: 'block', color: DIM, fontSize: 11, marginBottom: 4 }}>Amount (USD)</label>
             <input type="number" value={borrowAmount} onChange={(e) => setBorrowAmount(e.target.value)} style={{
-              width: '100%', background: SURFACE, border: '1px solid ' + BORDER, borderRadius: 8,
+              width: '100%', background: SURFACE3, border: '1px solid ' + BORDER_BRIGHT, borderRadius: 8,
               color: TEXT, padding: '8px 12px', fontSize: 14, outline: 'none', fontFamily: 'JetBrains Mono, monospace',
             }} />
           </div>
@@ -278,11 +281,11 @@ function WhatIfCalculator({ data }: { data: MarketData[] }) {
           )}
         </div>
       </div>
-      <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 12, padding: 20 }}>
+      <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 10, padding: 20 }}>
         <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>Summary</div>
         <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-          <div><div style={{ color: DIM, fontSize: 11 }}>Net Position</div><div style={{ color: supply >= borrow ? ACCENT : RED, fontSize: 20, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>{f$(supply - borrow)}</div></div>
-          <div><div style={{ color: DIM, fontSize: 11 }}>Yearly Earnings</div><div style={{ color: ACCENT, fontSize: 20, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>${yearlyEarn.toFixed(0)}</div></div>
+          <div><div style={{ color: DIM, fontSize: 11 }}>Net Position</div><div style={{ color: supply >= borrow ? ACCENT_EMERALD : RED, fontSize: 20, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>{f$(supply - borrow)}</div></div>
+          <div><div style={{ color: DIM, fontSize: 11 }}>Yearly Earnings</div><div style={{ color: ACCENT_EMERALD, fontSize: 20, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>${yearlyEarn.toFixed(0)}</div></div>
           <div><div style={{ color: DIM, fontSize: 11 }}>Yearly Cost</div><div style={{ color: RED, fontSize: 20, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>${yearlyCost.toFixed(0)}</div></div>
         </div>
       </div>
@@ -302,7 +305,7 @@ function PortfolioSection({ wallet, positions }: { wallet: string; positions: an
   const totalSupplied = positions.reduce((s, p) => s + (p.supplied || 0), 0);
   const totalBorrowed = positions.reduce((s, p) => s + (p.borrowed || 0), 0);
   const avgHF = positions.length > 0 ? positions.reduce((s, p) => s + (p.healthFactor || 0), 0) / positions.length : 0;
-  const hfColor = avgHF <= 0 ? DIM : avgHF < 1.05 ? RED : avgHF < 1.5 ? AMBER : avgHF < 3 ? ACCENT : '#4D9FFF';
+  const hfColor = avgHF <= 0 ? DIM : avgHF < 1.05 ? RED : avgHF < 1.5 ? AMBER : avgHF < 3 ? ACCENT_EMERALD : ACCENT;
 
   return (
     <div>
@@ -310,13 +313,13 @@ function PortfolioSection({ wallet, positions }: { wallet: string; positions: an
         <MetricCard label="Total Supplied" value={f$(totalSupplied)} sub={positions.length + ' positions'} />
         <MetricCard label="Total Borrowed" value={f$(totalBorrowed)} sub="Outstanding debt" />
         <MetricCard label="Net Worth" value={f$(totalSupplied - totalBorrowed)} accent={totalSupplied >= totalBorrowed} />
-        <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 12, padding: '16px 20px' }}>
+        <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 10, padding: '16px 20px' }}>
           <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>Health Factor</div>
           <div style={{ color: hfColor, fontSize: 28, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>{fHF(avgHF)}</div>
         </div>
       </div>
       {positions.length === 0 && (
-        <div style={{ background: SURFACE2, border: '1px dashed ' + (BORDER || BORDER), borderRadius: 12, padding: 32, textAlign: 'center', color: DIM }}>
+        <div style={{ background: SURFACE2, border: '1px dashed ' + BORDER_BRIGHT, borderRadius: 10, padding: 32, textAlign: 'center', color: DIM }}>
           No active positions found
         </div>
       )}
@@ -411,29 +414,41 @@ export default function LendingDashboard() {
     { id: 'tools', label: 'Tools' },
   ];
 
+  const SORT_OPTIONS = [
+    { key: 'supplyAPY', label: 'Supply APY' },
+    { key: 'borrowAPY', label: 'Borrow APY' },
+    { key: 'TVL', label: 'TVL' },
+    { key: 'LTV', label: 'LTV' },
+  ];
+
   return (
-    <div style={{ minHeight: '100vh', background: '#030B06', color: TEXT }}>
+    <div style={{ minHeight: '100vh', color: TEXT }}>
+      {/* Animated background orbs */}
+      <div className="orb orb-1" />
+      <div className="orb orb-2" />
+
       {/* Header */}
       <header style={{
-        background: 'rgba(3,11,6,0.9)', backdropFilter: 'blur(16px)',
+        background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(20px)',
         borderBottom: '1px solid ' + BORDER, position: 'sticky', top: 0, zIndex: 100,
       }}>
         <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 60, gap: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64, gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
               <div style={{
-                width: 32, height: 32, background: 'rgba(0,229,160,0.15)',
-                border: '1px solid ' + ACCENT, borderRadius: 8,
-                display: 'flex', alignItems: 'center', justifyContent: 'center'
+                width: 34, height: 34,
+                background: 'linear-gradient(135deg, rgba(80,128,255,0.2), rgba(0,229,118,0.1))',
+                border: '1px solid rgba(80,128,255,0.3)', borderRadius: 9,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                  <path d="M3 13 L9 5 L15 13" stroke={ACCENT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M5 10 H13" stroke={ACCENT} strokeWidth="1.5" strokeLinecap="round"/>
+                  <circle cx="9" cy="9" r="6" stroke={ACCENT} strokeWidth="1.5" opacity="0.6"/>
+                  <path d="M9 5 L9 13 M5 9 L13 9" stroke={ACCENT} strokeWidth="1.5" strokeLinecap="round"/>
                 </svg>
               </div>
               <div>
-                <div style={{ fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em' }}>LendScope</div>
-                <div style={{ color: DIM, fontSize: 10, letterSpacing: '0.06em' }}>CROSS-CHAIN LENDING ANALYTICS</div>
+                <div style={{ fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em', color: TEXT }}>LendScope</div>
+                <div style={{ color: DIM, fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Cross-Chain Lending Analytics</div>
               </div>
             </div>
             <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
@@ -443,15 +458,15 @@ export default function LendingDashboard() {
               <input type="text" placeholder="0x..." value={walletInput}
                 onChange={(e) => handleWalletChange(e.target.value)}
                 style={{
-                  background: SURFACE, border: '1px solid ' + (wallet && wallet.length === 42 ? ACCENT : BORDER),
-                  borderRadius: 8, color: TEXT, padding: '6px 12px', fontSize: 12,
-                  width: 200, outline: 'none', fontFamily: 'JetBrains Mono, monospace',
+                  background: SURFACE3, border: '1px solid ' + (wallet && wallet.length === 42 ? ACCENT : BORDER_BRIGHT),
+                  borderRadius: 8, color: TEXT, padding: '7px 12px', fontSize: 12,
+                  width: 210, outline: 'none', fontFamily: 'JetBrains Mono, monospace',
                 }} />
               <button onClick={fetchData} disabled={loading} style={{
-                width: 36, height: 36, borderRadius: 8, border: '1px solid ' + BORDER,
-                background: loading ? 'rgba(0,229,160,0.15)' : 'transparent',
+                width: 36, height: 36, borderRadius: 8, border: '1px solid ' + BORDER_BRIGHT,
+                background: loading ? 'rgba(80,128,255,0.12)' : 'transparent',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: loading ? ACCENT : TEXT,
+                color: loading ? ACCENT : MUTED, transition: 'all 0.15s ease',
               }}>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
                   style={loading ? { animation: 'spin 1s linear infinite' } : undefined}>
@@ -464,10 +479,11 @@ export default function LendingDashboard() {
           <div style={{ display: 'flex', gap: 4 }}>
             {TABS.map((t) => (
               <button key={t.id} onClick={() => setTab(t.id)} style={{
-                padding: '8px 16px', background: 'transparent',
+                padding: '10px 16px', background: 'transparent',
                 border: 'none', borderBottom: '2px solid ' + (tab === t.id ? ACCENT : 'transparent'),
                 color: tab === t.id ? TEXT : MUTED, fontSize: 13, fontWeight: 500,
-                cursor: 'pointer', fontFamily: 'Outfit, sans-serif', whiteSpace: 'nowrap',
+                cursor: 'pointer', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap',
+                transition: 'color 0.15s ease, border-color 0.15s ease',
               }}>
                 {t.label}
               </button>
@@ -478,9 +494,13 @@ export default function LendingDashboard() {
 
       <main style={{ maxWidth: 1400, margin: '0 auto', padding: '24px 24px 64px' }}>
         {lastUpdated && (
-          <div style={{ color: DIM, fontSize: 11, marginBottom: 20, fontFamily: 'JetBrains Mono, monospace', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: ACCENT, display: 'inline-block' }} />
-            Live · {lastUpdated.toLocaleTimeString()} · {filtered.length} markets
+          <div style={{ color: DIM, fontSize: 11, marginBottom: 20, fontFamily: 'JetBrains Mono, monospace', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: ACCENT_EMERALD, display: 'inline-block', boxShadow: '0 0 8px ' + ACCENT_EMERALD }} />
+            <span style={{ color: ACCENT_EMERALD, fontWeight: 600 }}>Live</span>
+            <span style={{ color: DIM }}>·</span>
+            <span>{lastUpdated.toLocaleTimeString()}</span>
+            <span style={{ color: DIM }}>·</span>
+            <span>{filtered.length} markets</span>
           </div>
         )}
 
@@ -494,18 +514,18 @@ export default function LendingDashboard() {
               <MetricCard label="Total TVL" value={f$(totalTVL)} />
             </div>
 
-            <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 12, padding: 20, marginBottom: 16 }}>
+            <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 10, padding: 20, marginBottom: 16 }}>
               <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>Avg Supply APY by Chain</div>
               <div style={{ height: 200 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chainAPY} margin={{ top: 4, right: 4, left: -16, bottom: 4 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={BORDER} vertical={false} />
-                    <XAxis dataKey="name" tick={{ fill: MUTED, fontSize: 12 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: MUTED, fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => v.toFixed(1) + '%'} />
-                    <Tooltip content={<CHART_TOOLTIP />} cursor={{ fill: 'rgba(0,229,160,0.04)' }} />
-                    <Bar dataKey="avgSupplyAPY" fill={ACCENT} radius={[4, 4, 0, 0]} maxBarSize={60} opacity={0.85}>
+                  <BarChart data={chainAPY}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" tick={{ fill: MUTED, fontSize: 11 }} axisLine={{ stroke: BORDER }} tickLine={false} />
+                    <YAxis tick={{ fill: MUTED, fontSize: 11 }} axisLine={{ stroke: BORDER }} tickLine={false} tickFormatter={(v) => v.toFixed(0) + '%'} />
+                    <Tooltip content={<CHART_TOOLTIP />} />
+                    <Bar dataKey="avgSupplyAPY" radius={[4, 4, 0, 0]} maxBarSize={40}>
                       {chainAPY.map((_, i) => (
-                        <Cell key={i} fill={'rgba(0,229,160,' + (0.4 + i * 0.15) + ')'} />
+                        <Cell key={i} fill={i === 0 ? ACCENT : i === 1 ? ACCENT_EMERALD : i === 2 ? '#805AFF' : i === 3 ? RED : AMBER} fillOpacity={0.8} />
                       ))}
                     </Bar>
                   </BarChart>
@@ -513,25 +533,23 @@ export default function LendingDashboard() {
               </div>
             </div>
 
-            <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 12, padding: 20, marginBottom: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, textTransform: 'uppercase' }}>Supply vs Borrow APY</div>
-                <div style={{ display: 'flex', gap: 16, fontSize: 12 }}>
-                  <span style={{ color: ACCENT }}>■ Supply</span>
-                  <span style={{ color: RED }}>■ Borrow</span>
-                </div>
+            <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 10, padding: 20 }}>
+              <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>
+                Supply vs Borrow APY
+                <span style={{ marginLeft: 16, fontWeight: 400, textTransform: 'none', color: DIM }}>
+                  <span style={{ color: ACCENT_EMERALD }}>■</span> Supply <span style={{ color: RED, marginLeft: 8 }}>■</span> Borrow
+                </span>
               </div>
-              <div style={{ height: 300 }}>
+              <div style={{ height: 220 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 4, right: 4, left: -16, bottom: 4 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={BORDER} vertical={false} />
-                    <XAxis dataKey="name" tick={{ fill: MUTED, fontSize: 10, fontFamily: 'JetBrains Mono, monospace' }} axisLine={false} tickLine={false} angle={-35} textAnchor="end" height={60} />
-                    <YAxis tick={{ fill: MUTED, fontSize: 10, fontFamily: 'JetBrains Mono, monospace' }} axisLine={false} tickLine={false} tickFormatter={(v) => v.toFixed(1) + '%'} />
-                    <Tooltip content={<CHART_TOOLTIP />} cursor={{ fill: 'rgba(0,229,160,0.04)' }} />
-                    <Legend wrapperStyle={{ color: MUTED, fontSize: 12, paddingTop: 12 }} />
-                    <Bar dataKey="Supply" fill={ACCENT} radius={[3, 3, 0, 0]} maxBarSize={16} opacity={0.9} />
-                    <Bar dataKey="Borrow" fill={RED} radius={[3, 3, 0, 0]} maxBarSize={16} opacity={0.7} />
-                  </BarChart>
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" tick={{ fill: MUTED, fontSize: 10 }} axisLine={{ stroke: BORDER }} tickLine={false} />
+                    <YAxis tick={{ fill: MUTED, fontSize: 11 }} axisLine={{ stroke: BORDER }} tickLine={false} tickFormatter={(v) => v.toFixed(0) + '%'} />
+                    <Tooltip content={<CHART_TOOLTIP />} />
+                    <Line type="monotone" dataKey="Supply" stroke={ACCENT_EMERALD} strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="Borrow" stroke={RED} strokeWidth={2} dot={false} />
+                  </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
@@ -540,51 +558,40 @@ export default function LendingDashboard() {
 
         {tab === 'yields' && (
           <div>
-            <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 12, padding: 20 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                  Best Yields — {filtered.length} pools
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {['supplyAPY', 'TVL', 'borrowAPY', 'LTV'].map((k) => (
-                    <button key={k} onClick={() => setSortKey(k)} style={{
-                      padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600,
-                      border: '1px solid ' + (sortKey === k ? ACCENT : BORDER),
-                      background: sortKey === k ? 'rgba(0,229,160,0.15)' : 'transparent',
-                      color: sortKey === k ? ACCENT : MUTED, cursor: 'pointer',
-                      fontFamily: 'Outfit, sans-serif',
-                    }}>
-                      {k}
-                    </button>
-                  ))}
-                </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Yield Rankings</div>
+              <div style={{ display: 'flex', gap: 4 }}>
+                {SORT_OPTIONS.map((o) => (
+                  <button key={o.key} onClick={() => setSortKey(o.key)} style={{
+                    padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 500,
+                    border: '1px solid ' + (sortKey === o.key ? ACCENT : BORDER),
+                    background: sortKey === o.key ? 'rgba(80,128,255,0.1)' : 'transparent',
+                    color: sortKey === o.key ? ACCENT : MUTED, cursor: 'pointer',
+                    transition: 'all 0.15s ease', fontFamily: 'Inter, sans-serif',
+                  }}>
+                    {o.label}
+                  </button>
+                ))}
               </div>
-              <YieldTable data={filtered} sortKey={sortKey} />
             </div>
+            <YieldTable data={filtered} />
           </div>
         )}
 
         {tab === 'portfolio' && (
-          <div>
-            <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 12, padding: 20 }}>
-              <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>
-                Portfolio
-              </div>
-              <PortfolioSection wallet={wallet} positions={portfolio} />
-            </div>
-          </div>
+          <PortfolioSection wallet={wallet} positions={portfolio} />
         )}
 
         {tab === 'tools' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
-            <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 12, padding: 20 }}>
-              <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, textTransform: 'uppercase', marginBottom: 16 }}>What-If Calculator</div>
-              <WhatIfCalculator data={filtered} />
-            </div>
-            <div>
-              <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 12, padding: 20 }}>
-                <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, textTransform: 'uppercase', marginBottom: 16 }}>Gas Optimizer</div>
+          <div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 32 }}>
+              <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 10, padding: 20 }}>
+                <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>Gas Optimizer</div>
                 <GasOptimizer />
+              </div>
+              <div style={{ background: SURFACE2, border: '1px solid ' + BORDER, borderRadius: 10, padding: 20 }}>
+                <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>What-If Calculator</div>
+                <WhatIfCalculator data={filtered} />
               </div>
             </div>
           </div>
